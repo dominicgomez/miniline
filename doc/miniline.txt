@@ -1,0 +1,104 @@
+*miniline.txt* A light, customizable statusline
+                                _       _ _ _               ~
+					   _ __ ___ (_)_ __ (_) (_)_ __   ___   ~
+					  | '_ ` _ \| | '_ \| | | | '_ \ / _ \  ~
+					  | | | | | | | | | | | | | | | |  __/  ~
+					  |_| |_| |_|_|_| |_|_|_|_|_| |_|\___|  ~
+
+Author: Dominic Gomez <http://github.com/dominicgomez>
+Version: 0.0
+
+===============================================================================
+CONTENTS                                                    *miniline-contents*
+
+    01. Introduction....................................|miniline-introduction|
+    02. Configuration..................................|miniline-configuration|
+    03. Commands............................................|miniline-commands|
+    04. Autocommands....................................|miniline-autocommands|
+    05. Advanced Configuration................|miniline-advanced-configuration|
+    06. Functions..........................................|miniline-functions|
+    07. Contributing....................................|miniline-contributing|
+    08. License..............................................|miniline-license|
+
+===============================================================================
+01. Introduction                                        *miniline-introduction*
+
+miniline is a light, customizable statusline plugin inspired by lightline.vim
+<http://github.com/itchyny/lightline.vim> and written entirely in Vimscript.
+
+===============================================================================
+02. Configuration                                      *miniline-configuration*
+
+The global variables provided by miniline and their default values are listed
+below.
+
+-------------------------------------------------------------------------------
+g:miniline_left_separator_char                 *g:miniline_left_separator_char*
+
+The character used to separate the components on the left side of the
+statusline.
+
+>
+    let g:miniline_left_separator_char = '|'
+<
+
+-------------------------------------------------------------------------------
+g:miniline_right_separator_char               *g:miniline_right_separator_char*
+
+The character used to separate the components on the right side of the
+statusline.
+
+>
+    let g:miniline_right_separator_char = '|'
+<
+
+-------------------------------------------------------------------------------
+g:miniline_custom_colors                             *g:miniline_custom_colors*
+
+When set to '0', miniline ignores all color options and displays the statusline
+using the currently active color scheme's "StatusLine" highlight group
+attributes. i.e. miniline only formats the statusline's text.
+
+>
+    let g:miniline_custom_colors = 1
+<
+
+===============================================================================
+03. Commands                                                *miniline-commands*
+
+-------------------------------------------------------------------------------
+:MinilineEnable                                               *:MinilineEnable*
+
+Always display miniline's statusline. miniline takes precedence over the user's
+'statusline' option.
+
+-------------------------------------------------------------------------------
+:MinilineConditionallyEnable                     *:MinilineConditionallyEnable*
+
+Display miniline's statusline if there are at least two windows. miniline takes
+precedence over the user's 'statusline' option.
+
+-------------------------------------------------------------------------------
+:MinilineDisable                                             *:MinilineDisable*
+
+Never display miniline's statusline. The user's 'statusline' option takes
+precedence over miniline.
+
+===============================================================================
+04. Autocommands                                        *miniline-autocommands*
+
+===============================================================================
+05. Advanced Configuration                    *miniline-advanced-configuration*
+
+===============================================================================
+06. Functions                                              *miniline-functions*
+
+===============================================================================
+07. Contributing                                        *miniline-contributing*
+
+===============================================================================
+08. License                                                  *miniline-license*
+
+MIT License. Copyright (c) 2017 Dominic Gomez
+
+vim:tw=79:ts=4:ft=help:norl:
