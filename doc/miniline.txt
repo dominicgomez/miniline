@@ -23,9 +23,9 @@ CONTENTS                                                    *miniline-contents*
 ===============================================================================
 01. Introduction                                        *miniline-introduction*
 
-miniline is a light, customizable statusline plugin for Vim inspired by
-lightline.vim <http://github.com/itchyny/lightline.vim> and written entirely
-in Vimscript.
+miniline is a light, customizable statusline plugin for Vim (inspired by
+lightline.vim <http://github.com/itchyny/lightline.vim> and vim-airline
+<http://github.com/vim-airline/vim-airline>) written entirely in Vimscript.
 
 ===============================================================================
 02. Configuration                                      *miniline-configuration*
