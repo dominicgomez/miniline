@@ -1,32 +1,29 @@
-" Prevent this script from being run more than once.
 " if exists('g:loaded_miniline')
 "     finish
 " endif
 " let g:loaded_miniline = 1
 
-" Before changing anything, save the current value of 'statusline' in case
-" miniline is disabled.
-let s:_statusline = &statusline
+function! s:Interpolate(items, sep)
+endfunction
 
-let s:miniline_statusline = ''
+function! s:GetModeOutput()
+    return s:miniline_mode_output[mode(1)]
+endfunction
 
-" =============================================================================
-" OPTION DEFAULTS:
-" =============================================================================
+function! s:GetPasteFlagOutput()
+    return s:miniline_paste_flag_output[&paste]
+endfunction
 
-" --------------------------------
-" Included And Excluded Filetypes:
-" --------------------------------
+function! s:GetSpellFlagOutput()
+    return s:miniline_spell_flag_output[&spell]
+endfunction
 
-let s:miniline_excl_filetypes_def = []
-let s:miniline_incl_filetypes_def = []
+let s:user_statusline = &statusline
 
-" ------------------------
-" Individual Item Formats:
-" ------------------------
+let s:miniline_exclude_filetypes = get(g:, 'miniline_exclude_filetypes', [])
+let s:miniline_include_filetypes = get(g:, 'miniline_include_filetypes', [])
 
-" Mode
-let s:miniline_mode_fmt_def = {
+let s:miniline_mode_output = {
     \ 'n': 'NORMAL',
     \ 'no': 'NORMAL',
     \ 'v': 'VISUAL',
@@ -52,143 +49,45 @@ let s:miniline_mode_fmt_def = {
     \ 't': 'TERMINAL JOB'
     \ }
 
-" Cursor information
-let s:miniline_cur_line_fmt_def = '{cur_line}'
-let s:miniline_cur_col_fmt_def = '{cur_col}'
-let s:miniline_perc_in_file_fmt_def = '--{perc}%--'
+if exists('g:miniline_mode_output')
+endif
 
-" File information
-let s:miniline_buffer_num_fmt_def = '{buffer_num}'
-let s:miniline_filename_fmt_def = '{abs_path}{tail}'
-let s:miniline_filetype_fmt_def = '[{filetype}]'
-let s:miniline_file_encoding_fmt_def = '[{file_encoding}]'
-let s:miniline_file_format_fmt_def = '[{file_format}]'
-let s:miniline_total_lines_fmt_def = '{total_lines}'
+let s:miniline_help_buffer_flag_output = ['[HELP]', '']
+let s:miniline_modified_flag_output = ['[+]', '']
+let s:miniline_paste_flag_output = ['[PASTE]', '']
+let s:miniline_preview_window_flag_output = ['[PREVIEW]', '']
+let s:miniline_readonly_flag_output = ['[RO]', '']
+let s:miniline_spell_flag_output = ['[SPELL]', '']
 
-" Flags
-let s:miniline_help_buffer_flag_def = ['[HELP]', '']
-let s:miniline_modified_flag_fmt_def = ['[+]', '']
-let s:miniline_paste_flag_fmt_def = ['[PASTE]', '']
-let s:miniline_preview_window_flag_def = ['[PREVIEW]', '']
-let s:miniline_readonly_flag_fmt_def = ['[RO]', '']
-let s:miniline_spell_flag_fmt_def = ['[SPELL]', '']
-
-" ------------------
-" Statusline Format:
-" ------------------
-
-" Left
-let s:miniline_left_separator_def = '|'
-let s:miniline_left_fmt_def = [
+let s:miniline_left_separator = get(g:, 'miniline_left_separator', '|')
+let s:miniline_left_format = get(g:, 'miniline_left_format',
+    \ [
     \ '{mode}',
-    \ '{file}',
+    \ '{filename}',
     \ '{readonly_flag}',
     \ '{modified_flag}',
     \ '{spell_flag}',
     \ '{paste_flag}'
-    \ ]
+    \ ])
 
-" Right
-let s:miniline_right_separator_def = '|'
-let s:miniline_right_fmt_def = [
+let s:miniline_right_separator = get(g:, 'miniline_right_separator', '|')
+let s:miniline_right_format = get(g:, 'miniline_right_format',
+    \ [
     \ '{filetype}',
     \ '{file_encoding}',
     \ '{file_format}',
     \ '{cur_line}:{cur_col}',
-    \ '{total_lines}'
-    \ ]
+    \ '{total_lines}',
+    \ ])
 
-" =============================================================================
-" OPTION ASSIGNMENT:
-" =============================================================================
+let s:miniline_left =
+    \ s:Interpolate(s:miniline_left_format, s:miniline_left_separator)
+let s:miniline_right =
+    \ s:Interpolate(s:miniline_right_format, s:miniline_right_separator)
 
-" --------------------------------
-" Included And Excluded Filetypes:
-" --------------------------------
-
-let s:miniline_excl_filetypes =
-    \ get(g:, 'miniline_excl_filetypes', s:miniline_excl_filetypes_def)
-let s:miniline_incl_filetypes =
-    \ get(g:, 'miniline_incl_filetypes', s:miniline_incl_filetypes_def)
-
-" ------------------------
-" Individual Item Formats:
-" ------------------------
-
-" Mode
-" The user may only reassign to some keys, so merge the default items with the
-" user's items.
-let s:miniline_mode_fmt = s:miniline_mode_fmt_def
-if exists('g:miniline_mode_fmt')
-endif
-
-" Cursor information
-let s:miniline_cur_line_fmt =
-    \ get(g:, 'miniline_cur_line_fmt', s:miniline_cur_line_fmt_def)
-let s:miniline_cur_col_fmt =
-    \ get(g:, 'miniline_cur_col_fmt', s:miniline_cur_col_fmt_def)
-let s:miniline_perc_in_file_fmt =
-    \ get(g:, 'miniline_perc_in_file_fmt', s:miniline_perc_in_file_fmt_def)
-
-" File information
-let s:miniline_buffer_num_fmt =
-    \ get(g:, 'miniline_buffer_num_fmt', s:miniline_buffer_num_fmt_def)
-let s:miniline_filename_fmt =
-    \ get(g:, 'miniline_filename_fmt', s:miniline_filename_fmt_def)
-let s:miniline_filetype_fmt =
-    \ get(g:, 'miniline_filetype_fmt', s:miniline_filetype_fmt_def)
-
-" Flags
+let s:miniline = s:miniline_left . '%=' . s:miniline_right
 
 
-" let s:miniline_file_encoding_fmt_def = '[{file_encoding}]'
-" let s:miniline_file_format_fmt_def = '[{file_format}]'
-" let s:miniline_total_lines_fmt_def = '{total_lines}'
-
-" " Flags
-" let s:miniline_help_buffer_flag_def = ['[HELP]', '']
-" let s:miniline_modified_flag_fmt_def = ['[+]', '']
-" let s:miniline_paste_flag_fmt_def = ['[PASTE]', '']
-" let s:miniline_preview_window_flag_def = ['[PREVIEW]', '']
-" let s:miniline_readonly_flag_fmt_def = ['[RO]', '']
-" let s:miniline_spell_flag_fmt_def = ['[SPELL]', '']
-
-" ------------------
-" Statusline Format:
-" ------------------
-
-" Left
-let s:miniline_left_separator =
-    \ get(g:, 'miniline_left_sep', s:miniline_left_separator_def)
-let s:miniline_left_fmt =
-    \ get(g:, 'miniline_left_fmt', s:miniline_left_fmt_def)
-
-" Right
-let s:miniline_right_sep =
-    \ get(g:, 'miniline_right_separator', s:miniline_right_separator_def)
-let s:miniline_right_fmt =
-    \ get(g:, 'miniline_right_fmt', s:miniline_right_fmt_def)
-
-" =============================================================================
-" FUNCTIONS:
-" =============================================================================
-
-function! s:GetMode()
-    let l:full_mode = mode(1)
-    if has_key(g:miniline_mode_fmt, l:full_mode)
-        return g:miniline_mode_fmt[l:full_mode]
-    else
-        echoerr 'ERROR: Mode (' . l:full_mode . ') not recognized.'
-    endif
-endfunction
-
-" function! s:GetPasteStatus()
-"     return (&paste ? 'PASTE' : '')
-" endfunction
-
-" function! s:GetSpellStatus()
-"     return (&spell ? 'SPELL' : '')
-" endfunction
 
 " function! s:Interpolate(miniline_item)
 "     if a:miniline_item ==? 'filename'
