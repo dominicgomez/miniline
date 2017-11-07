@@ -10,12 +10,8 @@ function! s:GetModeOutput()
     return s:miniline_mode_output[mode(1)]
 endfunction
 
-function! s:GetPasteFlagOutput()
-    return s:miniline_paste_flag_output[&paste]
-endfunction
-
-function! s:GetSpellFlagOutput()
-    return s:miniline_spell_flag_output[&spell]
+function! GetFlagOutput(flag)
+    return s:miniline_flag_output[a:flag][eval('&' . a:flag)]
 endfunction
 
 let s:user_statusline = &statusline
@@ -50,14 +46,20 @@ let s:miniline_mode_output = {
     \ }
 
 if exists('g:miniline_mode_output')
+    call extend(s:miniline_mode_output, g:miniline_mode_output, 'force')
 endif
 
-let s:miniline_help_buffer_flag_output = ['[HELP]', '']
-let s:miniline_modified_flag_output = ['[+]', '']
-let s:miniline_paste_flag_output = ['[PASTE]', '']
-let s:miniline_preview_window_flag_output = ['[PREVIEW]', '']
-let s:miniline_readonly_flag_output = ['[RO]', '']
-let s:miniline_spell_flag_output = ['[SPELL]', '']
+let s:miniline_flag_output = {
+    \ 'modified': ['', '[+]'],
+    \ 'paste': ['', '[PASTE]'],
+    \ 'previewwindow': ['', '[PREVIEW]'],
+    \ 'readonly': ['', '[RO]'],
+    \ 'spell': ['', '[SPELL]']
+    \ }
+
+if exists('g:miniline_flag_output')
+    call extend(s:miniline_flag_output, g:miniline_flag_output, 'force')
+endif
 
 let s:miniline_left_separator = get(g:, 'miniline_left_separator', '|')
 let s:miniline_left_format = get(g:, 'miniline_left_format',
@@ -87,30 +89,8 @@ let s:miniline_right =
 
 let s:miniline = s:miniline_left . '%=' . s:miniline_right
 
-
-
-" function! s:Interpolate(miniline_item)
-"     if a:miniline_item ==? 'filename'
-"         return '%F'
-"     elseif a:miniline_item ==? 'filetype'
-"         return '%y'
-"     elseif a:miniline_item ==? 'mode'
-"         return s:GetMode()
-"     elseif a:miniline_item ==? 'modified_flag'
-"         return '%m'
-"     elseif a:miniline_item ==? 'paste_flag'
-"         return s:GetPasteStatus()
-"     elseif a:miniline_item ==? 'readonly_flag'
-"         return '%r'
-"     elseif a:miniline_item ==? 'spell_flag'
-"         return s:GetSpellStatus()
-"     endif
-" endfunction
-
 " This matches anything (even nothing) between curly braces:
 " {.\{-}}
-
-
 
 " Enable, conditionally enable, or disable miniline.
 " function! s:MinilineSetState(state)
@@ -153,45 +133,6 @@ let s:miniline = s:miniline_left . '%=' . s:miniline_right
 
 "     return l:hl_args
 " endfunction
-
-" " =============================================================================
-" " Options: Global variables provided by miniline and their default values.
-" " =============================================================================
-
-" let s:plain_statusline = &statusline
-
-" let g:miniline_custom_colors = 1
-
-" let g:miniline_cursor_position_format = {
-"     \ 'line': 'plain',
-"     \ ':': 'plain',
-"     \ 'column': 'plain'
-"     \ }
-
-" let g:miniline_left_format = {
-"     \ 'mode': 'plain',
-"     \ 'full_path': 'title',
-"     \ 'modified_flag': 'warning',
-"     \ 'readonly_flag': 'error',
-"     \ 'spell_flag': 'reverse',
-"     \ 'paste_flag': 'reverse'
-"     \ }
-
-" let g:miniline_left_separator_char = { '|': 'plain' }
-
-" let g:miniline_right_format = {
-"     \ 'filetype': 'plain',
-"     \ 'file_encoding': 'plain',
-"     \ 'file_format': 'plain',
-"     \ 'cursor_position': 'plain',
-"     \ 'total_lines': 'plain'
-"     \ }
-
-" let g:miniline_right_separator_char = { '|': 'plain' }
-
-" " =============================================================================
-" " User Commands:
-" " =============================================================================
 
 " if !exists(':MinilineEnable')
 "     command MinilineEnable call s:MinilineSetState(2)
