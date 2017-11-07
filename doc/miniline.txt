@@ -1,4 +1,4 @@
-*miniline.txt* A light, customizable statusline for Vim
+*miniline.txt* A light, customizable statusline plugin for Vim
                                _       _ _ _              ~
                      _ __ ___ (_)_ __ (_) (_)_ __   ___   ~
                     | '_ ` _ \| | '_ \| | | | '_ \ / _ \  ~
