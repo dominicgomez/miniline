@@ -30,6 +30,8 @@ function! s:InterpolateFormatString(fmt_str)
             endif
             let l:str .= s:ReplaceFormatPlaceholder(a:fmt_str[l:i+1:l:end-1])
             let l:i = l:end + 1
+        elseif a:fmt_str[l:i] == ' '
+            let l:str .= '\'
         else
             let l:str .= a:fmt_str[l:i]
         endif
