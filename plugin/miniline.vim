@@ -3,15 +3,54 @@
 " endif
 " let g:loaded_miniline = 1
 
-function! s:Interpolate(items, sep)
+function! s:ProcessFormatStringList(elems, sep)
+    let l:str = ''
+    for l:fmt_str in a:elems
+        let l:str .= s:InterpolateFormatString(l:fmt_str)
+        let l:str .= a:sep
+    endfor
 endfunction
 
-function! s:GetModeOutput()
-    return s:miniline_mode_output[mode(1)]
+function! s:InterpolateFormatString(fmt_str)
+    let l:str = ''
+    let l:i = 0
+    while l:i < strchars(a:fmt_str)
+        if a:fmt_str[l:i] == '\'
+            let l:i += 1
+            if l:i >= strchars(a:fmt_str)
+                echoerr 'ERROR'
+                finish
+            endif
+            let l:str .= a:fmt_str[l:i]
+        elseif a:fmt_str[l:i] == '{'
+            let l:end = stridx(a:fmt_str, '}', l:i+1)
+            if l:end == -1
+                echoerr 'ERROR'
+                finish
+            endif
+            let l:str .= s:ReplaceFormatPlaceholder(a:fmt_str[l:i+1:l:end-1])
+            let l:i = l:end + 1
+        else
+            let l:str .= a:fmt_str[l:i]
+        endif
+        let l:i += 1
+    endwhile
+    return l:str
 endfunction
 
-function! GetFlagOutput(flag)
-    return s:miniline_flag_output[a:flag][eval('&' . a:flag)]
+function! s:ReplaceFormatPlaceholder(fmt_p)
+    if stridx(a:fmt_p, '_flag') != -1
+        return s:GetFlagOutput(a:fmt_p)
+    elseif a:fmt_p == 'mode'
+        return s:miniline_mode_output[mode(1)]
+    else
+        return 'IDK'
+    endif
+endfunction
+
+function! s:GetFlagOutput(flag)
+    let l:flag_prefix = a:flag[:stridx(a:flag, '_')-1]
+    return s:miniline_flag_output[a:flag][eval('&' . l:flag_prefix)]
 endfunction
 
 let s:user_statusline = &statusline
@@ -50,11 +89,11 @@ if exists('g:miniline_mode_output')
 endif
 
 let s:miniline_flag_output = {
-    \ 'modified': ['', '[+]'],
-    \ 'paste': ['', '[PASTE]'],
-    \ 'previewwindow': ['', '[PREVIEW]'],
-    \ 'readonly': ['', '[RO]'],
-    \ 'spell': ['', '[SPELL]']
+    \ 'modified_flag': ['', '[+]'],
+    \ 'paste_flag': ['', '[PASTE]'],
+    \ 'previewwindow_flag': ['', '[PREVIEW]'],
+    \ 'readonly_flag': ['', '[RO]'],
+    \ 'spell_flag': ['', '[SPELL]']
     \ }
 
 if exists('g:miniline_flag_output')
@@ -83,11 +122,22 @@ let s:miniline_right_format = get(g:, 'miniline_right_format',
     \ ])
 
 let s:miniline_left =
-    \ s:Interpolate(s:miniline_left_format, s:miniline_left_separator)
+    \ s:ProcessFormatStringList(s:miniline_left_format,
+    \                           s:miniline_left_separator)
 let s:miniline_right =
-    \ s:Interpolate(s:miniline_right_format, s:miniline_right_separator)
+    \ s:ProcessFormatStringList(s:miniline_right_format,
+    \                           s:miniline_right_separator)
 
 let s:miniline = s:miniline_left . '%=' . s:miniline_right
+
+" TESTING
+echom s:ReplaceFormatPlaceholder('mode')
+
+echom s:ReplaceFormatPlaceholder('modified_flag')
+echom s:ReplaceFormatPlaceholder('paste_flag')
+echom s:ReplaceFormatPlaceholder('previewwindow_flag')
+echom s:ReplaceFormatPlaceholder('readonly_flag')
+echom s:ReplaceFormatPlaceholder('spell_flag')
 
 " This matches anything (even nothing) between curly braces:
 " {.\{-}}
