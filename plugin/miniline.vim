@@ -47,8 +47,33 @@ endfunction
 function! s:ReplaceFormatPlaceholder(fmt_p)
     if stridx(a:fmt_p, '_flag') != -1
         return s:GetFlagOutput(a:fmt_p)
+    elseif a:fmt_p == 'absolute_path'
+        return '%F'
+    elseif a:fmt_p == 'buffer_number'
+        return '%n'
+    elseif a:fmt_p == 'cur_col'
+        return '%c'
+    elseif a:fmt_p == 'cur_line'
+        return '%l'
+    elseif a:fmt_p == 'filename'
+        return '%t'
+    elseif a:fmt_p == 'filetype'
+        return &filetype
+    elseif a:fmt_p == 'file_encoding'
+        return &fileencoding
+    elseif a:fmt_p == 'file_format'
+        return &fileformat
     elseif a:fmt_p == 'mode'
         return s:miniline_mode_output[mode(1)]
+    elseif a:fmt_p == 'percent_through_file'
+        " FIXME: Output an integer (v:t_number), not a float
+        return round(((line('.') * 1.0) / line('$')) * 100)
+    elseif a:fmt_p == 'relative_path'
+        return '%f'
+    elseif a:fmt_p == 'total_lines'
+        return '%L'
+    elseif a:fmt_p == 'virtual_col'
+        return '%v'
     else
         return 'IDK'
     endif
