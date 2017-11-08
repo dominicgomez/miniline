@@ -3,92 +3,107 @@
 " endif
 " let g:loaded_miniline = 1
 
-function! s:ProcessFormatStringList(fmt_strs, sep)
-    let l:str = ''
-    for l:fmt_str in a:fmt_strs
-        let l:str .= s:InterpolateFormatString(l:fmt_str)
-        let l:str .= a:sep
+" 'ml_fmt_strs' is a list of miniline format strings. Returns a parallel list
+" of statusline format strings.
+function! s:ProcessMinilineFormatStringList(ml_fmt_strs)
+    let l:stl_strs = []
+    for l:ml_fmt_str in a:ml_fmt_strs
+        call add(l:stl_strs, s:InterpolateMinilineFormatString(l:ml_fmt_str))
     endfor
-    return l:str
+    return l:stl_strs
 endfunction
 
-function! s:InterpolateFormatString(fmt_str)
-    let l:str = ''
+" 'ml_fmt_str' is a single miniline format string. Returns the equivalent
+" statusline format string.
+function! s:InterpolateMinilineFormatString(ml_fmt_str)
+    let l:stl_str = ''
     let l:i = 0
-    while l:i < strchars(a:fmt_str)
-        if a:fmt_str[l:i] == '\'
+    let l:ml_fmt_str_len = strchars(a:ml_fmt_str)
+    while l:i < l:ml_fmt_str_len
+
+        if a:ml_fmt_str[l:i] == '\'
             let l:i += 1
-            if l:i >= strchars(a:fmt_str)
+            if l:i >= l:ml_fmt_str_len
                 echo 'ERROR'
                 return ''
             endif
-            let l:str .= a:fmt_str[l:i]
+            let l:stl_str .= a:ml_fmt_str[l:i]
             let l:i += 1
-        elseif a:fmt_str[l:i] == '{'
-            let l:end = stridx(a:fmt_str, '}', l:i+1)
-            if l:end == -1
+
+        elseif a:ml_fmt_str[l:i] == '{'
+            let l:ml_fmt_str_end = stridx(a:ml_fmt_str, '}', l:i+1)
+            if l:ml_fmt_str_end == -1
                 echo 'ERROR'
                 return ''
             endif
-            let l:str .= s:ReplaceFormatPlaceholder(a:fmt_str[l:i+1:l:end-1])
-            let l:i = l:end + 1
-        elseif a:fmt_str[l:i] == ' '
-            let l:str .= '\ '
+            let l:stl_str .= s:ReplaceMinilineFormatPlaceholder(
+                \ a:ml_fmt_str[l:i+1:l:ml_fmt_str_end-1])
+            let l:i = l:ml_fmt_str_end + 1
+
+        elseif match(a:ml_fmt_str, '\S') != -1
+            let l:stl_str .= a:ml_fmt_str[l:i]
             let l:i += 1
+
+        elseif a:ml_fmt_str[l:i] == ' '
+            let l:stl_str .= '\ '
+            let l:i += 1
+
         else
-            let l:str .= a:fmt_str[l:i]
-            let l:i += 1
+            echo 'ERROR'
+            return ''
         endif
     endwhile
-    return l:str
+    return l:stl_str
 endfunction
 
-" ONLY USE SINGLE QUOTES HERE.
-" Using double quotes will mess up the assignment to 'statusline' since it's
-" wrapped in double quotes.
-function! s:ReplaceFormatPlaceholder(fmt_p)
-    " 'paste_flag'
-    " 'previewwindow_flag'
-    " 'readonly_flag'
-    " 'spell_flag'
-    if a:fmt_p == 'absolute_path'
+" 'ml_fmt_ph' is a miniline format placeholder without the surrounding curly
+" brackets. Returns either the equivalent printf-style ('%') statusline item or
+" an expression that the statusline can evaluate to yield the appropriate
+" value.
+function! s:ReplaceMinilineFormatPlaceholder(ml_fmt_ph)
+    "
+    " ONLY USE SINGLE QUOTES HERE!
+    " ----------------------------
+    " Using double quotes will mess up the assignment to 'statusline'.
+    "
+    if a:ml_fmt_ph == 'absolute_path'
         return '%F'
-    elseif a:fmt_p == 'buffer_number'
+    elseif a:ml_fmt_ph == 'buffer_number'
         return '%n'
-    elseif a:fmt_p == 'cur_col'
+    elseif a:ml_fmt_ph == 'cur_col'
         return '%c'
-    elseif a:fmt_p == 'cur_line'
+    elseif a:ml_fmt_ph == 'cur_line'
         return '%l'
-    elseif a:fmt_p == 'filename'
+    elseif a:ml_fmt_ph == 'filename'
         return '%t'
-    elseif a:fmt_p == 'filetype'
+    elseif a:ml_fmt_ph == 'filetype'
         return '%{&filetype}'
-    elseif a:fmt_p == 'file_encoding'
+    elseif a:ml_fmt_ph == 'file_encoding'
         return '%{&fileencoding}'
-    elseif a:fmt_p == 'file_format'
+    elseif a:ml_fmt_ph == 'file_format'
         return '%{&fileformat}'
-    elseif a:fmt_p == 'mode'
+    elseif a:ml_fmt_ph == 'mode'
         return '%{g:miniline_mode_output[mode(1)]}'
-    elseif a:fmt_p == 'modified_flag'
+    elseif a:ml_fmt_ph == 'modified_flag'
         return '%{g:miniline_flag_output[''modified_flag''][&modified]}'
-    elseif a:fmt_p == 'paste_flag'
+    elseif a:ml_fmt_ph == 'paste_flag'
         return '%{g:miniline_flag_output[''paste_flag''][&paste]}'
-    elseif a:fmt_p == 'percent_through_file'
+    elseif a:ml_fmt_ph == 'percent_through_file'
         let g:pct = 'string(round(((line(''.'') * 1.0) / line(''$'')) * 100))'
         let l:fmt = '[:stridx(eval(g:pct), ''.'')-1]'
         return '%{' . g:pct . l:fmt . '}'
-    elseif a:fmt_p == 'previewwindow_flag'
+    elseif a:ml_fmt_ph == 'previewwindow_flag'
         return '%{g:miniline_flag_output' .
              \ '[''previewwindow_flag''][&previewwindow]}'
-    elseif a:fmt_p == 'readonly_flag'
+    elseif a:ml_fmt_ph == 'readonly_flag'
         return '%{g:miniline_flag_output[''readonly_flag''][&readonly]}'
-    elseif a:fmt_p == 'relative_path'
+    elseif a:ml_fmt_ph == 'relative_path'
         return '%f'
-    elseif a:fmt_p == 'spell_flag'
+    elseif a:ml_fmt_ph == 'spell_flag'
         return '%{g:miniline_flag_output[''spell_flag''][&spell]}'
-    elseif a:fmt_p == 'total_lines'
+    elseif a:ml_fmt_ph == 'total_lines'
         return '%L'
-    elseif a:fmt_p == 'virtual_col'
+    elseif a:ml_fmt_ph == 'virtual_col'
         return '%v'
     else
         echo 'ERROR'
@@ -99,7 +114,8 @@ endfunction
 " The global version of this dictionary is used because 'statusline' accesses
 " it to display the appropriate string for the current mode, which changes
 " during runtime.
-let s:_miniline_mode_output = {
+let s:ml_mode_output =
+    \ {
     \ 'n': 'NORMAL',
     \ 'no': 'NORMAL',
     \ 'v': 'VISUAL',
@@ -125,12 +141,16 @@ let s:_miniline_mode_output = {
     \ 't': 'TERMINAL JOB'
     \ }
 if exists('g:miniline_mode_output')
-    call extend(g:miniline_mode_output, s:_miniline_mode_output, 'keep')
+    call extend(g:miniline_mode_output, s:ml_mode_output, 'keep')
 else
-    let g:miniline_mode_output = s:_miniline_mode_output
+    let g:miniline_mode_output = s:ml_mode_output
 endif
 
-let s:_miniline_flag_output = {
+" The global version of this dictionary is used because 'statusline' accesses
+" it to display the appropriate string for the current states of these flag,
+" which change during runtime.
+let s:ml_flag_output =
+    \ {
     \ 'modified_flag': ['', '[+]'],
     \ 'paste_flag': ['', '[PASTE]'],
     \ 'previewwindow_flag': ['', '[PREVIEW]'],
@@ -138,18 +158,19 @@ let s:_miniline_flag_output = {
     \ 'spell_flag': ['', '[SPELL]']
     \ }
 if exists('g:miniline_flag_output')
-    call extend(g:miniline_flag_output, s:_miniline_flag_output, 'keep')
+    call extend(g:miniline_flag_output, s:ml_flag_output, 'keep')
 else
-    let g:miniline_flag_output = s:_miniline_flag_output
+    let g:miniline_flag_output = s:ml_flag_output
 endif
 
+" Save the user's statusline in the event that miniline is disabled.
 let s:user_statusline = &statusline
 
-let s:miniline_exclude_filetypes = get(g:, 'miniline_exclude_filetypes', [])
-let s:miniline_include_filetypes = get(g:, 'miniline_include_filetypes', [])
+let s:ml_exclude_filetypes = get(g:, 'miniline_exclude_filetypes', [])
+let s:ml_include_filetypes = get(g:, 'miniline_include_filetypes', [])
 
-let s:miniline_left_separator = get(g:, 'miniline_left_separator', '|')
-let s:miniline_left_format = get(g:, 'miniline_left_format',
+let s:ml_left_separator = get(g:, 'miniline_left_separator', '|')
+let s:ml_left_format = get(g:, 'miniline_left_format',
     \ [
     \ '{mode}',
     \ '{filename}',
@@ -159,8 +180,8 @@ let s:miniline_left_format = get(g:, 'miniline_left_format',
     \ '{paste_flag}'
     \ ])
 
-let s:miniline_right_separator = get(g:, 'miniline_right_separator', '|')
-let s:miniline_right_format = get(g:, 'miniline_right_format',
+let s:ml_right_separator = get(g:, 'miniline_right_separator', '|')
+let s:ml_right_format = get(g:, 'miniline_right_format',
     \ [
     \ '{filetype}',
     \ '{file_encoding}',
@@ -170,13 +191,12 @@ let s:miniline_right_format = get(g:, 'miniline_right_format',
     \ '{percent_through_file}'
     \ ])
 
-let s:miniline_left =
-    \ s:ProcessFormatStringList(s:miniline_left_format,
-    \                           s:miniline_left_separator)
-let s:miniline_right =
-    \ s:ProcessFormatStringList(s:miniline_right_format,
-    \                           s:miniline_right_separator)
+let s:ml_left = s:ProcessMinilineFormatStringList(s:ml_left_format)
+echom string(s:ml_left)
 
-let s:miniline = s:miniline_left . '%=' . s:miniline_right
+let s:ml_right = s:ProcessMinilineFormatStringList(s:ml_right_format)
+echom string(s:ml_right)
 
-execute 'let &statusline = "' . s:miniline . '"'
+" let s:ml = s:ml_left . '%=' . s:ml_right
+
+" execute 'let &statusline = "' . s:ml . '"'
