@@ -48,6 +48,9 @@ endfunction
 " wrapped in double quotes.
 function! s:ReplaceFormatPlaceholder(fmt_p)
     if stridx(a:fmt_p, '_flag') != -1
+        let g:flag = a:fmt_p
+        " let g:flag_prefix = g:flag[:stridx(g:flag, '_')-1]
+        return '%{g:GetFlagOutput(g:flag)}'
         " return s:GetFlagOutput(a:fmt_p)
         " let g:flag = a:fmt_p
         " let g:flag_prefix = g:flag[:stridx(g:flag, '_')-1]
@@ -88,18 +91,17 @@ endfunction
 
 function! g:GetFlagOutput(flag)
     let l:flag_prefix = a:flag[:stridx(a:flag, '_')-1]
-    if !has_key(s:miniline_flag_output, a:flag)
+    if !has_key(g:miniline_flag_output, a:flag)
         echo 'ERROR'
         return ''
     endif
-    " return s:miniline_flag_output[a:flag][eval('&' . l:flag_prefix)]
     return g:miniline_flag_output[a:flag][eval('&' . l:flag_prefix)]
 endfunction
 
 " The global version of this dictionary is used because 'statusline' accesses
 " it to display the appropriate string for the current mode, which changes
 " during runtime.
-let s:miniline_mode_output = {
+let s:_miniline_mode_output = {
     \ 'n': 'NORMAL',
     \ 'no': 'NORMAL',
     \ 'v': 'VISUAL',
@@ -125,21 +127,22 @@ let s:miniline_mode_output = {
     \ 't': 'TERMINAL JOB'
     \ }
 if exists('g:miniline_mode_output')
-    call extend(g:miniline_mode_output, s:miniline_mode_output, 'keep')
+    call extend(g:miniline_mode_output, s:_miniline_mode_output, 'keep')
+else
+    let g:miniline_mode_output = s:_miniline_mode_output
 endif
 
-let s:miniline_flag_output = {
+let s:_miniline_flag_output = {
     \ 'modified_flag': ['', '[+]'],
     \ 'paste_flag': ['', '[PASTE]'],
     \ 'previewwindow_flag': ['', '[PREVIEW]'],
     \ 'readonly_flag': ['', '[RO]'],
     \ 'spell_flag': ['', '[SPELL]']
     \ }
-" if exists('g:miniline_flag_output')
-"     call extend(s:miniline_flag_output, g:miniline_flag_output, 'force')
-" endif
 if exists('g:miniline_flag_output')
-    call extend(g:miniline_flag_output, s:miniline_flag_output, 'keep')
+    call extend(g:miniline_flag_output, s:_miniline_flag_output, 'keep')
+else
+    let g:miniline_flag_output = s:_miniline_flag_output
 endif
 
 let s:user_statusline = &statusline
