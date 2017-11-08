@@ -181,7 +181,7 @@ let s:miniline_right =
 
 let s:miniline = s:miniline_left . '%=' . s:miniline_right
 
-execute 'let &statusline = "' . s:miniline . '"' . '"'
+execute 'let &statusline = "' . s:miniline . '"'
 
 " TESTING
 " echom s:ReplaceFormatPlaceholder('mode')
