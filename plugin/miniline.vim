@@ -6,7 +6,6 @@
 function! s:ProcessFormatStringList(fmt_strs, sep)
     let l:str = ''
     for l:fmt_str in a:fmt_strs
-        echom s:InterpolateFormatString(l:fmt_str)
         let l:str .= s:InterpolateFormatString(l:fmt_str)
         let l:str .= a:sep
     endfor
@@ -46,7 +45,11 @@ endfunction
 
 function! s:ReplaceFormatPlaceholder(fmt_p)
     if stridx(a:fmt_p, '_flag') != -1
-        return s:GetFlagOutput(a:fmt_p)
+        " return s:GetFlagOutput(a:fmt_p)
+        " let g:flag = a:fmt_p
+        " let g:flag_prefix = g:flag[:stridx(g:flag, '_')-1]
+        " return '%{g:miniline_flag_output[g:flag][eval("&" . g:flag_prefix)]}'
+        " return '%{GetFlagOutput(a:fmt_p)}'
     elseif a:fmt_p == 'absolute_path'
         return '%F'
     elseif a:fmt_p == 'buffer_number'
@@ -58,13 +61,13 @@ function! s:ReplaceFormatPlaceholder(fmt_p)
     elseif a:fmt_p == 'filename'
         return '%t'
     elseif a:fmt_p == 'filetype'
-        return &filetype
+        return '%{&filetype}'
     elseif a:fmt_p == 'file_encoding'
-        return &fileencoding
+        return '%{&fileencoding}'
     elseif a:fmt_p == 'file_format'
-        return &fileformat
+        return '%{&fileformat}'
     elseif a:fmt_p == 'mode'
-        return s:miniline_mode_output[mode(1)]
+        return '%{g:miniline_mode_output[mode(1)]}'
     elseif a:fmt_p == 'percent_through_file'
         " FIXME: Output an integer (v:t_number), not a float
         return round(((line('.') * 1.0) / line('$')) * 100)
@@ -79,20 +82,19 @@ function! s:ReplaceFormatPlaceholder(fmt_p)
     endif
 endfunction
 
-function! s:GetFlagOutput(flag)
+function! g:GetFlagOutput(flag)
     let l:flag_prefix = a:flag[:stridx(a:flag, '_')-1]
     if !has_key(s:miniline_flag_output, a:flag)
         echo 'ERROR'
         return ''
     endif
-    return s:miniline_flag_output[a:flag][eval('&' . l:flag_prefix)]
+    " return s:miniline_flag_output[a:flag][eval('&' . l:flag_prefix)]
+    return g:miniline_flag_output[a:flag][eval('&' . l:flag_prefix)]
 endfunction
 
-let s:user_statusline = &statusline
-
-let s:miniline_exclude_filetypes = get(g:, 'miniline_exclude_filetypes', [])
-let s:miniline_include_filetypes = get(g:, 'miniline_include_filetypes', [])
-
+" The global version of this dictionary is used because 'statusline' accesses
+" it to display the appropriate string for the current mode, which changes
+" during runtime.
 let s:miniline_mode_output = {
     \ 'n': 'NORMAL',
     \ 'no': 'NORMAL',
@@ -118,9 +120,8 @@ let s:miniline_mode_output = {
     \ '!': 'EXTERNAL COMMAND',
     \ 't': 'TERMINAL JOB'
     \ }
-
 if exists('g:miniline_mode_output')
-    call extend(s:miniline_mode_output, g:miniline_mode_output, 'force')
+    call extend(g:miniline_mode_output, s:miniline_mode_output, 'keep')
 endif
 
 let s:miniline_flag_output = {
@@ -130,10 +131,17 @@ let s:miniline_flag_output = {
     \ 'readonly_flag': ['', '[RO]'],
     \ 'spell_flag': ['', '[SPELL]']
     \ }
-
+" if exists('g:miniline_flag_output')
+"     call extend(s:miniline_flag_output, g:miniline_flag_output, 'force')
+" endif
 if exists('g:miniline_flag_output')
-    call extend(s:miniline_flag_output, g:miniline_flag_output, 'force')
+    call extend(g:miniline_flag_output, s:miniline_flag_output, 'keep')
 endif
+
+let s:user_statusline = &statusline
+
+let s:miniline_exclude_filetypes = get(g:, 'miniline_exclude_filetypes', [])
+let s:miniline_include_filetypes = get(g:, 'miniline_include_filetypes', [])
 
 let s:miniline_left_separator = get(g:, 'miniline_left_separator', '|')
 let s:miniline_left_format = get(g:, 'miniline_left_format',
@@ -156,14 +164,16 @@ let s:miniline_right_format = get(g:, 'miniline_right_format',
     \ '{total_lines}',
     \ ])
 
-" let s:miniline_left =
-"     \ s:ProcessFormatStringList(s:miniline_left_format,
-"     \                           s:miniline_left_separator)
-" let s:miniline_right =
-"     \ s:ProcessFormatStringList(s:miniline_right_format,
-"     \                           s:miniline_right_separator)
+let s:miniline_left =
+    \ s:ProcessFormatStringList(s:miniline_left_format,
+    \                           s:miniline_left_separator)
+let s:miniline_right =
+    \ s:ProcessFormatStringList(s:miniline_right_format,
+    \                           s:miniline_right_separator)
 
-" let s:miniline = s:miniline_left . '%=' . s:miniline_right
+let s:miniline = s:miniline_left . '%=' . s:miniline_right
+
+execute 'let &statusline = "' . s:miniline . '"' . '"'
 
 " TESTING
 " echom s:ReplaceFormatPlaceholder('mode')
@@ -183,5 +193,5 @@ let s:miniline_right_format = get(g:, 'miniline_right_format',
 " echom s:InterpolateFormatString('\{mode\}')
 " echom s:InterpolateFormatString('\{modified_flag}')
 
-let s:test_format_1 = ['MODE: {mode}', '{readonly_flag}', '{modified_flag}']
-echom s:ProcessFormatStringList(s:test_format_1, '|')
+" let s:test_format_1 = ['MODE: {mode}', '{readonly_flag}', '{modified_flag}']
+" echom s:ProcessFormatStringList(s:test_format_1, '|')
