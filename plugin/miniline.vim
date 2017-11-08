@@ -3,12 +3,14 @@
 " endif
 " let g:loaded_miniline = 1
 
-function! s:ProcessFormatStringList(elems, sep)
+function! s:ProcessFormatStringList(fmt_strs, sep)
     let l:str = ''
-    for l:fmt_str in a:elems
+    for l:fmt_str in a:fmt_strs
+        echom s:InterpolateFormatString(l:fmt_str)
         let l:str .= s:InterpolateFormatString(l:fmt_str)
         let l:str .= a:sep
     endfor
+    return l:str
 endfunction
 
 function! s:InterpolateFormatString(fmt_str)
@@ -18,24 +20,26 @@ function! s:InterpolateFormatString(fmt_str)
         if a:fmt_str[l:i] == '\'
             let l:i += 1
             if l:i >= strchars(a:fmt_str)
-                echoerr 'ERROR'
-                finish
+                echo 'ERROR'
+                return ''
             endif
             let l:str .= a:fmt_str[l:i]
+            let l:i += 1
         elseif a:fmt_str[l:i] == '{'
             let l:end = stridx(a:fmt_str, '}', l:i+1)
             if l:end == -1
-                echoerr 'ERROR'
-                finish
+                echo 'ERROR'
+                return ''
             endif
             let l:str .= s:ReplaceFormatPlaceholder(a:fmt_str[l:i+1:l:end-1])
             let l:i = l:end + 1
         elseif a:fmt_str[l:i] == ' '
-            let l:str .= '\'
+            let l:str .= '\ '
+            let l:i += 1
         else
             let l:str .= a:fmt_str[l:i]
+            let l:i += 1
         endif
-        let l:i += 1
     endwhile
     return l:str
 endfunction
@@ -52,6 +56,10 @@ endfunction
 
 function! s:GetFlagOutput(flag)
     let l:flag_prefix = a:flag[:stridx(a:flag, '_')-1]
+    if !has_key(s:miniline_flag_output, a:flag)
+        echo 'ERROR'
+        return ''
+    endif
     return s:miniline_flag_output[a:flag][eval('&' . l:flag_prefix)]
 endfunction
 
@@ -123,20 +131,32 @@ let s:miniline_right_format = get(g:, 'miniline_right_format',
     \ '{total_lines}',
     \ ])
 
-let s:miniline_left =
-    \ s:ProcessFormatStringList(s:miniline_left_format,
-    \                           s:miniline_left_separator)
-let s:miniline_right =
-    \ s:ProcessFormatStringList(s:miniline_right_format,
-    \                           s:miniline_right_separator)
+" let s:miniline_left =
+"     \ s:ProcessFormatStringList(s:miniline_left_format,
+"     \                           s:miniline_left_separator)
+" let s:miniline_right =
+"     \ s:ProcessFormatStringList(s:miniline_right_format,
+"     \                           s:miniline_right_separator)
 
-let s:miniline = s:miniline_left . '%=' . s:miniline_right
+" let s:miniline = s:miniline_left . '%=' . s:miniline_right
 
 " TESTING
-echom s:ReplaceFormatPlaceholder('mode')
+" echom s:ReplaceFormatPlaceholder('mode')
 
-echom s:ReplaceFormatPlaceholder('modified_flag')
-echom s:ReplaceFormatPlaceholder('paste_flag')
-echom s:ReplaceFormatPlaceholder('previewwindow_flag')
-echom s:ReplaceFormatPlaceholder('readonly_flag')
-echom s:ReplaceFormatPlaceholder('spell_flag')
+" echom s:ReplaceFormatPlaceholder('modified_flag')
+" echom s:ReplaceFormatPlaceholder('paste_flag')
+" echom s:ReplaceFormatPlaceholder('previewwindow_flag')
+" echom s:ReplaceFormatPlaceholder('readonly_flag')
+" echom s:ReplaceFormatPlaceholder('spell_flag')
+
+" echom s:InterpolateFormatString('{mode}')
+" echom s:InterpolateFormatString('{paste_flag}{spell_flag}')
+" echom s:InterpolateFormatString('{error_flag}')
+" echom s:InterpolateFormatString('{spell_flag} {paste_flag}')
+" echom s:InterpolateFormatString('Dominic')
+" echom s:InterpolateFormatString('Mode: {mode}')
+" echom s:InterpolateFormatString('\{mode\}')
+" echom s:InterpolateFormatString('\{modified_flag}')
+
+let s:test_format_1 = ['MODE: {mode}', '{readonly_flag}', '{modified_flag}']
+echom s:ProcessFormatStringList(s:test_format_1, '|')
