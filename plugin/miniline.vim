@@ -47,16 +47,11 @@ endfunction
 " Using double quotes will mess up the assignment to 'statusline' since it's
 " wrapped in double quotes.
 function! s:ReplaceFormatPlaceholder(fmt_p)
-    if stridx(a:fmt_p, '_flag') != -1
-        let g:flag = a:fmt_p
-        " let g:flag_prefix = g:flag[:stridx(g:flag, '_')-1]
-        return '%{g:GetFlagOutput(g:flag)}'
-        " return s:GetFlagOutput(a:fmt_p)
-        " let g:flag = a:fmt_p
-        " let g:flag_prefix = g:flag[:stridx(g:flag, '_')-1]
-        " return '%{g:miniline_flag_output[g:flag][eval("&" . g:flag_prefix)]}'
-        " return '%{GetFlagOutput(a:fmt_p)}'
-    elseif a:fmt_p == 'absolute_path'
+    " 'paste_flag'
+    " 'previewwindow_flag'
+    " 'readonly_flag'
+    " 'spell_flag'
+    if a:fmt_p == 'absolute_path'
         return '%F'
     elseif a:fmt_p == 'buffer_number'
         return '%n'
@@ -74,28 +69,31 @@ function! s:ReplaceFormatPlaceholder(fmt_p)
         return '%{&fileformat}'
     elseif a:fmt_p == 'mode'
         return '%{g:miniline_mode_output[mode(1)]}'
+    elseif a:fmt_p == 'modified_flag'
+        return '%{g:miniline_flag_output[''modified_flag''][&modified]}'
+    elseif a:fmt_p == 'paste_flag'
+        return '%{g:miniline_flag_output[''paste_flag''][&paste]}'
     elseif a:fmt_p == 'percent_through_file'
         let g:pct = 'string(round(((line(''.'') * 1.0) / line(''$'')) * 100))'
         let l:fmt = '[:stridx(eval(g:pct), ''.'')-1]'
         return '%{' . g:pct . l:fmt . '}'
+    elseif a:fmt_p == 'previewwindow_flag'
+        return '%{g:miniline_flag_output' .
+             \ '[''previewwindow_flag''][&previewwindow]}'
+    elseif a:fmt_p == 'readonly_flag'
+        return '%{g:miniline_flag_output[''readonly_flag''][&readonly]}'
     elseif a:fmt_p == 'relative_path'
         return '%f'
+    elseif a:fmt_p == 'spell_flag'
+        return '%{g:miniline_flag_output[''spell_flag''][&spell]}'
     elseif a:fmt_p == 'total_lines'
         return '%L'
     elseif a:fmt_p == 'virtual_col'
         return '%v'
     else
-        return 'IDK'
-    endif
-endfunction
-
-function! g:GetFlagOutput(flag)
-    let l:flag_prefix = a:flag[:stridx(a:flag, '_')-1]
-    if !has_key(g:miniline_flag_output, a:flag)
         echo 'ERROR'
         return ''
     endif
-    return g:miniline_flag_output[a:flag][eval('&' . l:flag_prefix)]
 endfunction
 
 " The global version of this dictionary is used because 'statusline' accesses
