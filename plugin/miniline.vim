@@ -43,6 +43,9 @@ function! s:InterpolateFormatString(fmt_str)
     return l:str
 endfunction
 
+" ONLY USE SINGLE QUOTES HERE.
+" Using double quotes will mess up the assignment to 'statusline' since it's
+" wrapped in double quotes.
 function! s:ReplaceFormatPlaceholder(fmt_p)
     if stridx(a:fmt_p, '_flag') != -1
         " return s:GetFlagOutput(a:fmt_p)
@@ -69,8 +72,9 @@ function! s:ReplaceFormatPlaceholder(fmt_p)
     elseif a:fmt_p == 'mode'
         return '%{g:miniline_mode_output[mode(1)]}'
     elseif a:fmt_p == 'percent_through_file'
-        " FIXME: Output an integer (v:t_number), not a float
-        return round(((line('.') * 1.0) / line('$')) * 100)
+        let g:pct = 'string(round(((line(''.'') * 1.0) / line(''$'')) * 100))'
+        let l:fmt = '[:stridx(eval(g:pct), ''.'')-1]'
+        return '%{' . g:pct . l:fmt . '}'
     elseif a:fmt_p == 'relative_path'
         return '%f'
     elseif a:fmt_p == 'total_lines'
@@ -162,6 +166,7 @@ let s:miniline_right_format = get(g:, 'miniline_right_format',
     \ '{file_format}',
     \ '{cur_line}:{cur_col}',
     \ '{total_lines}',
+    \ '{percent_through_file}'
     \ ])
 
 let s:miniline_left =
