@@ -180,24 +180,3 @@ let s:miniline_right =
 let s:miniline = s:miniline_left . '%=' . s:miniline_right
 
 execute 'let &statusline = "' . s:miniline . '"'
-
-" TESTING
-" echom s:ReplaceFormatPlaceholder('mode')
-
-" echom s:ReplaceFormatPlaceholder('modified_flag')
-" echom s:ReplaceFormatPlaceholder('paste_flag')
-" echom s:ReplaceFormatPlaceholder('previewwindow_flag')
-" echom s:ReplaceFormatPlaceholder('readonly_flag')
-" echom s:ReplaceFormatPlaceholder('spell_flag')
-
-" echom s:InterpolateFormatString('{mode}')
-" echom s:InterpolateFormatString('{paste_flag}{spell_flag}')
-" echom s:InterpolateFormatString('{error_flag}')
-" echom s:InterpolateFormatString('{spell_flag} {paste_flag}')
-" echom s:InterpolateFormatString('Dominic')
-" echom s:InterpolateFormatString('Mode: {mode}')
-" echom s:InterpolateFormatString('\{mode\}')
-" echom s:InterpolateFormatString('\{modified_flag}')
-
-" let s:test_format_1 = ['MODE: {mode}', '{readonly_flag}', '{modified_flag}']
-" echom s:ProcessFormatStringList(s:test_format_1, '|')
